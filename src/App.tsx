@@ -1,20 +1,41 @@
-// import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css'
-import { LoginForm } from './components/LoginForm'
-// import AutoCounter from './components/AutoCounter'
-// import PostPage from './PostPage'
-// import Todos from './components/Todo';
+import Todos from './components/Todos'
+import { getTodos } from './components/api/todos/todos-api';
+import type { Todo } from './types';
 
 function App() {
-  // const [showCounter, setShowCounter] = useState(true);
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [finishedCount, setFinishedCount] = useState<number>(0);  
+  
+  useEffect(() => {
+    getTodos().then((todos) => {
+      setTodos(todos);
+      // setTimeout(() => {
+      //   setTodos((todosArray) => {
+      //     return todosArray.map((todo, index) => { 
+      //       if(index <=10){
+      //         return {...todo, completed: true}
+      //       }
+      //       return todo;
+      //     });
+      //   })
+      // }, 2000)
+    })  
+  }, []);
+
+  useEffect(() => {
+    const count = todos.filter(todo =>todo.completed).length;  
+    setFinishedCount(count);
+   }, [todos])
 
   return (
     <>
-    <LoginForm />
-    {/* <Todos />
-    {showCounter && <AutoCounter />}
-    <button className='mb-10' onClick={() => setShowCounter(!showCounter)}>Toggle Counter</button>
-    <PostPage /> */}
+    <p className='text-3xl'>
+      Finished Todos  =  
+      <span className='font-bold'>{finishedCount}</span>
+    </p>
+      <Todos todoArray={todos} />
     </>
   )
 }

@@ -1,31 +1,18 @@
-import {useEffect, type FC } from "react";
-
-type Todo = {
-  text: string;
-  id: number;
-};
+import { FC } from "react";
+import type { Todo } from "../types";
 
 type TodoItemProps = { 
   item: Todo; 
-  onDelete: (itemId: number) => void
 };
 
-const TodoItem: FC<TodoItemProps> = ({ item, onDelete }) => {
-  useEffect(() => {
-    console.log(`component rendered for item ${item.id}`);
-
-    return () => {
-      console.log(`component removed for item ${item.id}`);
-    };
-  }, []);
+const TodoItem: FC<TodoItemProps> = ({ item }) => {
   return (
     <li
-      onClick={() => {
-        onDelete(item.id);
-      }}
       id={`todo_item_${item.id}`}
     >
-      {item.text}
+      {item.title}
+      -
+      {item.completed ? "Completed" : "Not Completed"}
     </li>
   );
 };
