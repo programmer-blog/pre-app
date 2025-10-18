@@ -1,7 +1,3 @@
-# Practical React Essentials
-
-This is react practice app
-
 ````markdown
 # 🚀 React Learning Project
 
@@ -23,9 +19,12 @@ This README is written especially for **beginners** who are starting their React
    - [JSX](#-jsx)
    - [Function Components](#-function-components)
    - [Props vs State](#-props-vs-state)
+   - [useState Hook (in Detail)](#-usestate-hook-in-detail)
    - [Event Handlers](#-event-handlers)
    - [Dynamic & Conditional Rendering](#-dynamic--conditional-rendering)
    - [Component Lifecycle in Function Components](#-component-lifecycle-in-function-components)
+   - [useEffect Hook (in Detail)](#-useeffect-hook-in-detail)
+   - [Props Drilling and Context API (3 Steps)](#-props-drilling-and-context-api-3-steps)
    - [Virtual DOM](#-virtual-dom)
 4. [Styling in React](#-styling-in-react)
    - [Inline Styles](#-inline-styles)
@@ -192,6 +191,37 @@ const Button = ({ text }) => {
 
 ---
 
+### 🌿 useState Hook (in Detail)
+
+I learned the `useState` hook in depth.
+It allows functional components to have internal state and update it dynamically.
+
+Example:
+
+```jsx
+import { useState } from "react";
+
+function Counter() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>Clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>Click</button>
+    </div>
+  );
+}
+```
+
+✅ **Key Points:**
+
+* `useState` returns a state variable and a function to update it.
+* Updating state triggers a re-render.
+* State is isolated per component.
+* It’s ideal for interactive UI parts like forms, toggles, or counters.
+
+---
+
 ### 🎛 Event Handlers
 
 React uses **camelCase event names** (e.g., `onClick`, `onChange`).
@@ -256,12 +286,110 @@ useEffect(() => {
 
 ---
 
+### ⚡ useEffect Hook (in Detail)
+
+I explored the `useEffect` hook deeply. It’s used to perform **side effects** like fetching data, timers, subscriptions, or DOM updates.
+
+Example:
+
+```jsx
+import { useEffect, useState } from "react";
+
+function Timer() {
+  const [seconds, setSeconds] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => setSeconds(s => s + 1), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return <p>Seconds passed: {seconds}</p>;
+}
+```
+
+✅ **Key Points:**
+
+* Runs after every render by default.
+* Use dependency array (`[]`) to control execution.
+* Cleanup prevents memory leaks.
+* Common use cases: API calls, subscriptions, and DOM events.
+
+---
+
+### 🧩 Props Drilling and Context API (3 Steps)
+
+#### Step 1: Understanding Props Drilling
+
+Initially, I passed data and functions as **props** from parent components (`App.ts`) down to child components like **Notes** and **StickyNotes**.
+
+```jsx
+<App>
+  <Notes notes={notes} onDelete={deleteNote} />
+</App>
+```
+
+This worked fine for small apps but became complex when props had to go through multiple layers of components.
+
+---
+
+#### Step 2: The Problem with Deep Props Passing
+
+As the project grew, prop drilling became hard to manage:
+
+* Functions like `toggleStarNote`, `deleteNote`, and `addNote` needed to be passed through many components.
+* Components had to forward props they didn’t use.
+* It made code harder to maintain and read.
+
+---
+
+#### Step 3: Using Context API for Global State
+
+To fix this, I used the **Context API** for managing global state (notes and sticky notes).
+Now all components can access shared data without prop drilling.
+
+```jsx
+import { createContext, useContext, useState } from "react";
+
+const NotesContext = createContext();
+
+export function NotesProvider({ children }) {
+  const [notes, setNotes] = useState([]);
+
+  const addNote = (note) => setNotes([...notes, note]);
+  const deleteNote = (id) => setNotes(notes.filter(n => n.id !== id));
+  const toggleStar = (id) =>
+    setNotes(notes.map(n => n.id === id ? { ...n, starred: !n.starred } : n));
+
+  return (
+    <NotesContext.Provider value={{ notes, addNote, deleteNote, toggleStar }}>
+      {children}
+    </NotesContext.Provider>
+  );
+}
+
+export const useNotes = () => useContext(NotesContext);
+```
+
+In `StickyNotes` or `NotesList`:
+
+```jsx
+const { notes, toggleStar, deleteNote } = useNotes();
+```
+
+✅ **Benefits:**
+
+* Eliminates prop drilling.
+* Centralized logic for notes.
+* Cleaner and easier to extend codebase.
+
+---
+
 ### 🌳 Virtual DOM
 
 React creates a **virtual representation of the DOM** in memory.
-When state changes, React updates only the parts of the DOM that actually changed.
+When state changes, React updates only the affected parts.
 
-✅ **Benefit:** Improves performance and keeps the UI fast.
+✅ **Benefit:** Improves performance and keeps UI fast.
 
 ---
 
@@ -360,4 +488,5 @@ import Button from '@mui/material/Button';
 
 This project is for **learning purposes** only and is open for anyone to explore.
 
+```
 ```
