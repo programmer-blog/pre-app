@@ -462,6 +462,173 @@ import Button from '@mui/material/Button';
 ✅ **Tip:** Great for building professional UIs quickly.
 
 ---
+# 📄 Custom Hooks
+
+````markdown
+# Custom Hooks: `useFetch<T>` and `useWindowSize`
+
+Small, focused React hooks used in the app to encapsulate common UI/data behavior:
+- **`useFetch<T>`** – generic data fetching with TypeScript
+- **`useWindowSize`** – reactive window `{ width, height }`
+
+## Why custom hooks?
+- **Encapsulate only related logic** (data fetch; window size)
+- **Name with `use` prefix** (React hooks convention)
+- **Keep hooks small and focused** (easy to test and reuse)
+
+---
+
+## `useFetch<T>(url: string)`
+
+A generic, type-safe fetch hook.
+
+### API
+```ts
+const { data, loading } = useFetch<T>(url);
+````
+
+* **`T`**: the expected data shape (e.g., `Note[]`)
+* **`data`**: `T | null` – the parsed JSON response
+* **`loading`**: `boolean` – `true` while fetching
+
+### Example
+
+```tsx
+type Note = { id: number; title: string; completed: boolean };
+
+const { data, loading } = useFetch<Note[]>(
+  "https://jsonplaceholder.typicode.com/todos"
+);
+
+if (loading) return <h1>Loading ...</h1>;
+
+return <pre>{JSON.stringify(data, null, 2)}</pre>;
+```
+
+### How it works (summary)
+
+* Initializes `data = null`, `loading = true`
+* On mount and whenever `url` changes:
+
+  * fetches `url`, `await response.json()`
+  * sets `data` and flips `loading` to `false`
+
+### Possible enhancements (TODO)
+
+* Add **error** state: `{ data, loading, error }`
+* Add **AbortController** to cancel in-flight request on unmount/url change
+* Accept optional **transform**: `useFetch<T>(url, map?: (raw) => T)`
+* Support **request init**: `useFetch<T>(url, { method, headers, body })`
+* Cache/stale-while-revalidate strategy (SWR-like)
+
+---
+
+## `useWindowSize()`
+
+Tracks the browser viewport in real time.
+
+### API
+
+```ts
+const { width, height } = useWindowSize();
+```
+
+### Example
+
+```tsx
+const size = useWindowSize();
+
+return size.width < 300
+  ? <h1>Resolution not supported</h1>
+  : <Notes />;
+```
+
+### How it works (summary)
+
+* Initializes state from `window.innerWidth/innerHeight`
+* Adds a `resize` event listener on mount
+* Updates state on resize, removes listener on unmount
+
+### Possible enhancements (TODO)
+
+* **SSR guard** (Next.js): check `typeof window !== "undefined"`
+* **Throttle/debounce** resize handler for performance
+* Expose **orientation** or **breakpoint** helpers if needed
+
+---
+
+## How they’re used in `App.tsx`
+
+```tsx
+function App() {
+  const [notes, setNotes] = useState<Note[]>([]);
+
+  const size = useWindowSize();
+  const { data, loading } = useFetch<Note[]>(
+    "https://jsonplaceholder.typicode.com/todos"
+  );
+
+  useEffect(() => {
+    setNotes(data ? data : []);
+  }, [data]);
+
+  const toggleStarNote = (noteId: number) => {
+    setNotes(notes.map(n =>
+      n.id === noteId ? { ...n, completed: !n.completed } : n
+    ));
+  };
+
+  const deleteNote = (id: number) => {
+    setNotes(notes.filter(n => n.id !== id));
+  };
+
+  if (loading) return <h1>Loading ...</h1>;
+
+  return (
+    <AppContext.Provider value={{ notes, toggleStarNote, deleteNote }}>
+      {size.width < 300 ? <h1>Resolution not supported</h1> : <Notes />}
+    </AppContext.Provider>
+  );
+}
+```
+
+**Notes**
+
+* The hooks keep the component clean: fetching and window logic are encapsulated.
+* You can remove the `eslint-disable-next-line` comment—there’s no unused expression.
+
+---
+
+## General Hooks TODOs (Guidelines)
+
+* [x] **Encapsulate only related logic** (no mixing concerns)
+* [x] **Name hooks with the `use` prefix**
+* [x] **Keep hooks small and focused**
+
+**Next improvements**
+
+* [ ] `useFetch`: add `error` state and `AbortController`
+* [ ] `useFetch`: optional `init` and `transform` params
+* [ ] `useWindowSize`: SSR safety + throttle/debounce
+* [ ] Add tests (JSDOM): simulate resize; mock `fetch`
+* [ ] Extract `types.ts` for `Note` and other shared interfaces
+
+---
+
+## TypeScript tip (Generics in `useFetch<T>`)
+
+`<T>` is a type placeholder so the hook returns strongly-typed data:
+
+```ts
+const { data } = useFetch<Note[]>(url); // data inferred as Note[] | null
+```
+
+This keeps your app type-safe without duplicating fetch logic.
+
+```
+
+---
+
 
 ## 💡 Tips for Beginners
 
